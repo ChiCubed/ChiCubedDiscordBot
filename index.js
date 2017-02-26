@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const nodeopus = require('node-opus');
 const client = new Discord.Client();
 
 client.on('ready', () => {
@@ -11,7 +12,7 @@ client.on('message', message => {
   }
 });
 
-var fs = require('fs');
-var path = process.cwd();
-var token = fs.readFileSync(path + "/token").toString().replace(/\n$/,'');
+const fs = require('fs');
+const path = process.cwd();
+const token = fs.readFileSync(path + "/token").toString().replace(/\n$/,'');
 client.login(token);
