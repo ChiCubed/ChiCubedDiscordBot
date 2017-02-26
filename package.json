@@ -1,0 +1,19 @@
+{
+  "name": "chicubeddiscordbot",
+  "version": "1.0.0",
+  "description": "A bot for me to play with.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChiCubed/ChiCubedDiscordBot.git"
+  },
+  "author": "Albert Smith",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ChiCubed/ChiCubedDiscordBot/issues"
+  },
+  "homepage": "https://github.com/ChiCubed/ChiCubedDiscordBot#readme"
+}
