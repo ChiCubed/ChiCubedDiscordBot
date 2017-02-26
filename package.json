@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/ChiCubed/ChiCubedDiscordBot/issues"
   },
-  "homepage": "https://github.com/ChiCubed/ChiCubedDiscordBot#readme"
+  "homepage": "https://github.com/ChiCubed/ChiCubedDiscordBot#readme",
+  "dependencies": {
+    "discord.js": "^11.0.0"
+  }
 }
