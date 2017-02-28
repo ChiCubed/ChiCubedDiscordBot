@@ -6,88 +6,126 @@ const bot = new Discord.Client();
 
 var permissions = {};
 try {
-  permissions = require('permissions.json');
+  permissions = require('./permissions.json');
 } catch (e) {
   permissions = { "admins" : [ ], "blacklist" : [ ] };
 }
 
 
-function isAdmin(user) {
-  return permissions.admins.includes(user);
+function isAdmin(id) {
+  return permissions.admins.includes(id);
 }
 
-function isBlacklisted(user) {
-  return permissions.blacklist.includes(user);
+function isBlacklisted(id) {
+  return permissions.blacklist.includes(id);
 }
 
 
 var commands = {
   "admin": {
-    info: "adds an administrator. if no arguments given, lists all administrators",
+    info: "adds as administrator any mentioned users. if no arguments given, lists all administrators",
     run: function(bot,msg,args) {
-      if (!args) {
-        msg.channel.sendMessage("Administrators: " + permissions.admins.join(", "));
-      } else if (!isAdmin(msg.author)) {
-        msg.channel.sendMessage(msg.author + ": You need admin permissions to do that.");
-      } else if (isBlacklisted(args)) {
-        msg.channel.sendMessage(msg.author + ": " + args + " is blacklisted.");
-      } else if (isAdmin(args)) {
-        msg.channel.sendMessage(msg.author + ": " + args + " is already an admin.");
-      } else {
-        permissions.admins.push(args);
-        msg.channel.sendMessage(args + " added to administrators.");
+      if (!msg.mentions.users.size) {
+        var admins = permissions.admins.map(function (id) { return msg.channel.members.get(id).user.username; }).join(", ");
+        msg.channel.sendMessage("Administrators: " + admins);
+      } else if (!isAdmin(msg.author.id)) {
+        msg.channel.sendMessage(msg.author.username + ": You need admin permissions to do that.");
+      } else {        
+        var usr = null;
+        for (var i in msg.mentions.users.array()) {
+          usr = msg.mentions.users.array()[i];
+          if (!(usr instanceof Discord.User)) {
+            continue;
+          }
+          if (isBlacklisted(usr.id)) {
+            msg.channel.sendMessage(msg.author.username + ": " + usr.username + " is blacklisted.");
+          } else if (isAdmin(usr.id)) {
+            msg.channel.sendMessage(msg.author.username + ": " + usr.username + " is already an admin.");
+          } else {
+            permissions.admins.push(usr.id);
+            msg.channel.sendMessage(usr.username + " added to administrators.");
+          }
+        }
       }
     }
   },
   
   "rmadmin": {
-    info: "removes an administrator.",
+    info: "removes all mentioned administrators.",
     run: function(bot,msg,args) {
-      if (!args) {
+      if (!msg.mentions.users.size) {
         msg.channel.sendMessage("No user provided.");
-      } else if (!isAdmin(msg.author)) {
-        msg.channel.sendMessage(msg.author + ": You need admin permissions to do that.");
-      } else if (!isAdmin(args)) {
-        msg.channel.sendMessage(msg.author + ": " + args + " is not an admin.");
+      } else if (!isAdmin(msg.author.id)) {
+        msg.channel.sendMessage(msg.author.username + ": You need admin permissions to do that.");
       } else if (permissions.admins.length == 1) {
-        msg.channel.sendMessage(msg.author + ": there must be at least one admin.");
-      } else {
-        permissions.admins.splice(permissions.admins.indexOf(args),1);
-        msg.channel.sendMessage(args + " removed from administrators.");
+        msg.channel.sendMessage(msg.author.username + ": there must be at least one admin.");
+      } else {        
+        var usr = null;
+        for (var i in msg.mentions.users.array()) {
+          usr = msg.mentions.users.array()[i];
+          if (!(usr instanceof Discord.User)) {
+            continue;
+          }
+          if (!isAdmin(usr.id)) {
+            msg.channel.sendMessage(msg.author.username + ": " + usr.username + " is not an admin.");
+          } else {
+            permissions.admins.splice(permissions.admins.indexOf(usr.id),1);
+            msg.channel.sendMessage(usr.username + " removed from administrators.");
+          }
+        }
       }
     }
   },
   
   "blacklist": {
-    info: "blacklists a user from using the bot. if no arguments given, lists blacklisted users.",
+    info: "blacklists all mentioned users from using the bot. if no arguments given, lists blacklisted users.",
     run: function(bot,msg,args) {
-      if (!args) {
-        msg.channel.sendMessage("Blacklisted users: " + permissions.blacklist.join(", "));
-      } else if (!isAdmin(msg.author)) {
-        msg.channel.sendMessage(msg.author + ": You need admin permissions to do that.");
-      } else if (isAdmin(args)) {
-        msg.channel.sendMessage(msg.author + ": cannot blacklist " + args + ": is admin");
-      } else if (isBlacklisted(args)) {
-        msg.channel.sendMessage(msg.author + ": " + args + " is already blacklisted.");
-      } else {
-        permissions.blacklist.push(args);
-        msg.channel.sendMessage(args + " added to blacklist.");
+      if (!msg.mentions.users.size) {
+        msg.channel.sendMessage("Blacklisted users: " + permissions.blacklist.map(
+                                function (id) { return msg.channel.members.get(id).user.username; }).join(", "));
+      } else if (!isAdmin(msg.author.id)) {
+        msg.channel.sendMessage(msg.author.username + ": You need admin permissions to do that.");
+      } else {        
+        var usr = null;
+        for (var i in msg.mentions.users.array()) {
+          usr = msg.mentions.users.array()[i];
+          if (!(usr instanceof Discord.User)) {
+            continue;
+          }
+          if (isAdmin(usr.id)) {
+            msg.channel.sendMessage(msg.author.username + ": cannot blacklist " + usr.username + ": is admin");
+          } else if (isBlacklisted(usr.id)) {
+            msg.channel.sendMessage(msg.author.username + ": " + usr.username + " is already blacklisted.");
+          } else {
+            permissions.blacklist.push(usr.id);
+            msg.channel.sendMessage(usr.username + " added to blacklist.");
+          }
+        }
       }
     }
   },
   
   "whitelist": {
-    info: "remove a user from the blacklist.",
+    info: "removes all mentioned users from the blacklist.",
     run: function(bot,msg,args) {
-      if (!args) {
+      if (!msg.mentions.users.size) {
         msg.channel.sendMessage("No user provided.");
-      } else if (!isAdmin(msg.author)) {
-        msg.channel.sendMessage(msg.author + ": You need admin permissions to do that.");
-      } else if (!isBlacklisted(args)) {
-        msg.channel.sendMessage(msg.author + ": " + args + " is not blacklisted.");
-      } else {
-        permissions.blacklist.splice(permissions.blacklist.indexOf(args),1);
-        msg.channel.sendMessage(args + "removed from blacklist.");
+      } else if (!isAdmin(msg.author.id)) {
+        msg.channel.sendMessage(msg.author.username + ": You need admin permissions to do that.");
+      } else {        
+        var usr = null;
+        for (var i in msg.mentions.users.array()) {
+          usr = msg.mentions.users.array()[i];
+          if (!(usr instanceof Discord.User)) {
+            continue;
+          }
+          if (!isBlacklisted(usr.id)) {
+            msg.channel.sendMessage(msg.author.username + ": " + usr.username + " is not blacklisted.");
+          } else {
+            permissions.blacklist.splice(permissions.blacklist.indexOf(usr.id),1);
+            msg.channel.sendMessage(usr.username + " removed from blacklist.");
+          }
+        }
       }
     }
   },
@@ -95,7 +133,7 @@ var commands = {
   "ping": {
     info: "responds with pong",
     run: function(bot,msg,args) {
-      msg.channel.sendMessage(msg.author + ": pong");
+      msg.channel.sendMessage(msg.author.username + ": pong");
     }
   },
   
@@ -120,27 +158,28 @@ function processCommand(bot,msg) {
     return;
   }
   
-  if (isBlacklisted(msg.author)) {
-    console.log("received message attempt from blacklisted user: " + msg.author);
+  if (isBlacklisted(msg.author.id)) {
+    console.log("received message attempt from blacklisted user: " + msg.author.username);
     return;
   }
   
-  var cmd = ""
-  var args = ""
+  var cmd = "";
+  var args = "";
+  var mentions = msg.mentions;
   if (!msg.content.includes(" ")) {
     cmd = msg.content.substr(1);
   } else {
-    cmd = msg.content.substr(1,msg.content.indexOf(' '));
+    cmd = msg.content.substr(1,msg.content.indexOf(' ')-1);
     args = msg.content.substr(msg.content.indexOf(' ') + 1).trim();
   }
   
   if (cmd == "help") {
-    console.log("received help request from " + msg.author + ": " + args);
+    console.log("received help request from " + msg.author.username + ": " + args);
     if (args) {
       if (commands.hasOwnProperty(args)) {
         msg.channel.sendMessage(args + ": " + commands[args].info);
       } else {
-        msg.channel.sendMessage(msg.author + ": " + args + " not found");
+        msg.channel.sendMessage(msg.author.username + ": " + args + " not found");
       }
     } else {
       for (var hcmd in commands) {
@@ -156,7 +195,7 @@ function processCommand(bot,msg) {
     return;
   }
   
-  console.log("received command from " + msg.author + ": " + cmd + " " + args);
+  console.log("received command from " + msg.author.username + ": " + cmd + " " + args);
   commands[cmd].run(bot,msg,args);
 }
 
