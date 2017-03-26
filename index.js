@@ -26,7 +26,7 @@ var commands = {
     info: "adds as administrator any mentioned users. if no arguments given, lists all administrators",
     run: function(bot,msg,args) {
       if (!msg.mentions.users.size) {
-        var admins = permissions.admins.map(function (id) { return msg.channel.members.get(id).user.username; }).join(", ");
+        var admins = permissions.admins.map(function (id) { return "<@"+id+">" }).join(", ");
         msg.channel.sendMessage("Administrators: " + admins);
       } else if (!isAdmin(msg.author.id)) {
         msg.channel.sendMessage(msg.author.username + ": You need admin permissions to do that.");
@@ -82,7 +82,7 @@ var commands = {
     run: function(bot,msg,args) {
       if (!msg.mentions.users.size) {
         msg.channel.sendMessage("Blacklisted users: " + permissions.blacklist.map(
-                                function (id) { return msg.channel.members.get(id).user.username; }).join(", "));
+                                function (id) { return "<@"+id+">"; }).join(", "));
       } else if (!isAdmin(msg.author.id)) {
         msg.channel.sendMessage(msg.author.username + ": You need admin permissions to do that.");
       } else {        
@@ -182,11 +182,13 @@ function processCommand(bot,msg) {
         msg.channel.sendMessage(msg.author.username + ": " + args + " not found");
       }
     } else {
+      var x = ""
       for (var hcmd in commands) {
         if (commands.hasOwnProperty(hcmd)) {
-          msg.channel.sendMessage(hcmd + ": " + commands[hcmd].info);
+          x += "**" + hcmd + "**: " + commands[hcmd].info + "\n";
         }
       }
+      msg.channel.sendMessage(x);
     }
     return;
   }
