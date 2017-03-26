@@ -1,6 +1,10 @@
 const Discord = require('discord.js');
 const nodeopus = require('node-opus');
+const google = require('googleapis');
+var customsearch = google.customsearch('v1');
 const bot = new Discord.Client();
+
+const token = require('./token.json');
 
 
 
@@ -133,7 +137,14 @@ var commands = {
   "ping": {
     info: "responds with pong",
     run: function(bot,msg,args) {
-      msg.channel.sendMessage(msg.author.username + ": pong");
+      msg.channel.sendMessage(msg.author.username + ": :ping_pong:");
+    }
+  },
+  
+  "pong": {
+    info: "sort of like ping",
+    run: function(bot,msg,args) {
+      msg.channel.sendMessage(msg.author.username + ": :ping_pong: Wait, what?");
     }
   },
   
@@ -148,6 +159,51 @@ var commands = {
     info: "same as say but with text to speech",
     run: function(bot,msg,args) {
       msg.channel.sendMessage(args,{tts:true});
+    }
+  },
+  
+  "google": {
+    info: "search Google",
+    run: function(bot,msg,args) {
+      if (!token.hasOwnProperty('googletoken')) {
+        msg.channel.sendMessage(msg.author.username + ": no Google Custom Search token");
+        return;
+      }
+      
+      if (!token.hasOwnProperty('googlecx')) {
+        msg.channel.sendMessage(msg.author.username + ": no Google Custom Search Engine token");
+        return;
+      }
+      
+      customsearch.cse.list({ cx: token.googlecx, q: args, auth: token.googletoken },
+        function(err, resp) {
+          if (err) {
+            console.log("Error searching Google: " + err);
+            msg.channel.sendMessage(
+              msg.author.username + ": An error occured"
+            );
+            return;
+          }
+          
+          if (!resp.items || resp.items.length == 0) {
+            msg.channel.sendMessage(msg.author.username + ": No results");
+            return;
+          }
+          
+          var l = 5;
+          if (resp.items.length < l) {
+            l = resp.items.length;
+          }
+          
+          results = msg.author.username + ": Results for " + args + "\n";
+          for (i = 0; i < l; ++i) {
+            results += "**" + resp.items[i].title + "**" + " *" + 
+                              resp.items[i].formattedUrl + "*\n" +
+                              resp.items[i].snippet + "\n";
+          }
+          
+          msg.channel.sendMessage(results);
+        })
     }
   }
 }
@@ -175,6 +231,7 @@ function processCommand(bot,msg) {
   
   if (cmd == "help") {
     console.log("received help request from " + msg.author.username + ": " + args);
+    msg.channel.startTyping();
     if (args) {
       if (commands.hasOwnProperty(args)) {
         msg.channel.sendMessage(args + ": " + commands[args].info);
@@ -190,6 +247,7 @@ function processCommand(bot,msg) {
       }
       msg.channel.sendMessage(x);
     }
+    msg.channel.stopTyping();
     return;
   }
   
@@ -198,7 +256,9 @@ function processCommand(bot,msg) {
   }
   
   console.log("received command from " + msg.author.username + ": " + cmd + " " + args);
+  msg.channel.startTyping();
   commands[cmd].run(bot,msg,args);
+  msg.channel.stopTyping();
 }
 
 
@@ -212,8 +272,5 @@ bot.on('message', message => {
   }
 });
 
-// Read from the token file.
-const fs = require('fs');
-const path = process.cwd();
-const token = fs.readFileSync(path + "/token").toString().replace(/\n$/,'');
-bot.login(token);
+// Login
+bot.login(token.bottoken);

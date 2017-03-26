@@ -1,6 +1,13 @@
 {
   "name": "chicubeddiscordbot",
-  "dependencies": { "discord.js": "latest", "node-opus": "latest" },
+  "dependencies": {
+    "discord.js": "^11.0.0",
+    "google-search": "0.0.5",
+    "googleapis": "^18.0.0",
+    "node-gyp": "^3.5.0",
+    "node-opus": "^0.2.4",
+    "uws": "^0.14.0"
+  },
   "version": "1.0.0",
   "description": "A bot for me to play with.",
   "main": "index.js",
@@ -17,10 +24,5 @@
   "bugs": {
     "url": "https://github.com/ChiCubed/ChiCubedDiscordBot/issues"
   },
-  "homepage": "https://github.com/ChiCubed/ChiCubedDiscordBot#readme",
-  "dependencies": {
-    "discord.js": "^11.0.0",
-    "node-gyp": "^3.5.0",
-    "node-opus": "^0.2.4"
-  }
+  "homepage": "https://github.com/ChiCubed/ChiCubedDiscordBot#readme"
 }
