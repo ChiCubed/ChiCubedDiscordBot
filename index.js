@@ -201,11 +201,27 @@ var commands = {
             l = resp.items.length;
           }
           
+          // Make sure the IP address doesn't show up because that would be baaad
+          const ipv4 = child_process.execSync("curl -s 'https://api.ipify.org/?format=html'") + '';
+          
+          var ipv6 = "";
+          for (i = 0; i < 2; ++i) {
+            var hex = parseInt(ipv4.split(".")[i], 10).toString(16);
+            ipv6 += ('00'+hex).substring(hex.length);
+          }
+          
+          ipv6 += ":"
+          
+          for (i = 2; i < 4; ++i) {
+            var hex = parseInt(ipv4.split(".")[i], 10).toString(16);
+            ipv6 += ('00'+hex).substring(hex.length);
+          }
+          
           results = msg.author.username + ": Results for \"" + args + "\"\n";
           for (i = 0; i < l; ++i) {
-            results += "**" + resp.items[i].title + "**" + " *" + 
-                              resp.items[i].formattedUrl + "*\n" +
-                              resp.items[i].snippet + "\n";
+            results += "**" + resp.items[i].title.replace(ipv4,"[REDACTED]").replace(ipv6,"[REDACTED]")
+                     + "**" + " *" + resp.items[i].link.replace(ipv4,"[REDACTED]").replace(ipv6,"[REDACTED]")
+                     + "*\n" + resp.items[i].snippet.replace(ipv4,"[REDACTED]").replace(ipv6,"[REDACTED]") + "\n";
           }
           
           msg.channel.sendMessage(results);
@@ -264,6 +280,23 @@ var commands = {
         }
         
         msg.channel.sendMessage(message);
+      });
+    }
+  },
+  
+  "replace": {
+    info: "dummy function to test replacement",
+    run: function(bot,msg,args) {
+      if (!args) {
+        return;
+      }
+      child_process.execFile("./replace.py",[msg.author.username,msg.author.id,args], (error,stdout,stderr) => {
+        if (error) {
+          console.log(error);
+          msg.channel.sendMessage("An error occured");
+          return;
+        }
+        msg.channel.sendMessage(stdout);
       });
     }
   }
