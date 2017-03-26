@@ -1,11 +1,17 @@
+const token = require('./token.json');
+
 const Discord = require('discord.js');
 const nodeopus = require('node-opus');
 const google = require('googleapis');
+const child_process = require('child_process');
 var customsearch = google.customsearch('v1');
+
+var wolfram = null;
+if (token.hasOwnProperty('wolframtoken')) {
+  wolfram = require('wolfram-alpha').createClient(token.wolframtoken);
+}
+
 const bot = new Discord.Client();
-
-const token = require('./token.json');
-
 
 
 var permissions = {};
@@ -195,7 +201,7 @@ var commands = {
             l = resp.items.length;
           }
           
-          results = msg.author.username + ": Results for " + args + "\n";
+          results = msg.author.username + ": Results for \"" + args + "\"\n";
           for (i = 0; i < l; ++i) {
             results += "**" + resp.items[i].title + "**" + " *" + 
                               resp.items[i].formattedUrl + "*\n" +
@@ -204,6 +210,61 @@ var commands = {
           
           msg.channel.sendMessage(results);
         })
+    }
+  },
+  
+  "askwolfram": {
+    info: "search WolframAlpha",
+    run: function(bot,msg,args) {
+      if (wolfram == null) {
+        msg.channel.sendMessage(
+          msg.author.username + ": no WolframAlpha token"
+        );
+        return;
+      }
+      
+      wolfram.query(args, function(err,result) {
+        if (err) {
+          console.log("Error searching WolframAlpha: " + err);
+          msg.channel.sendMessage(
+            msg.author.username + ": An error occured"
+          );
+          return;
+        }
+        
+        if (result[0].subpods[0].text == "current geoIP location") {
+          msg.channel.sendMessage("[REDACTED]");
+          return;
+        }
+        
+        // Make sure the IP address doesn't show up because that would be baaad
+        const ipv4 = child_process.execSync("curl -s 'https://api.ipify.org/?format=html'") + '';
+        
+        var ipv6 = "";
+        for (i = 0; i < 2; ++i) {
+          var hex = parseInt(ipv4.split(".")[i], 10).toString(16);
+          ipv6 += ('00'+hex).substring(hex.length);
+        }
+        
+        ipv6 += ":"
+        
+        for (i = 2; i < 4; ++i) {
+          var hex = parseInt(ipv4.split(".")[i], 10).toString(16);
+          ipv6 += ('00'+hex).substring(hex.length);
+        }
+        
+        var message = msg.author.username + ": Results for \"" + args + "\"\n";
+        for (i in result) {
+          var pod = result[i];
+          message += "**" + pod.title + "**\n";
+          for (j in pod.subpods) {
+            var subpod = pod.subpods[j];
+            message += "    " + subpod.text.split("\n").join("    \n").replace(ipv4,"[REDACTED]").replace(ipv6,"[REDACTED]") + "\n";
+          }
+        }
+        
+        msg.channel.sendMessage(message);
+      });
     }
   }
 }
