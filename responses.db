@@ -1,0 +1,2 @@
+Example::Test;;
+(.*)::\1 (user <@\2>) sent message "\3";;

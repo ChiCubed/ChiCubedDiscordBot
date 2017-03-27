@@ -14,17 +14,18 @@ for the WolframAlpha API.
   "wolframtoken": "awefa"
 }
 
-replacements.db contains a database of replacements delimited by :: and ;;, as
+responses.db contains a database of responses delimited by :: and ;;, as
 follows:
 
 Example::Example2;;
 Test(.*)::\3;;
 
-The replacements are in [Python regex](https://docs.python.org/3.6/library/re.html) format.
+The responses are in [Python regex](https://docs.python.org/3.6/library/re.html) format.
 \1 is a group representing the username and \2 is a group containing the user ID.
 
-The replacements all start from the beginning and end at the end of the
+The responses all start from the beginning and end at the end of the
 messages.
 
 The bot listens for messages which match the regexes on the left side
-and replace them with those on the right side.
+and responds to them with those on the right side. (At least it will eventually,
+at the moment use the `!testresponse` command to test your responses)

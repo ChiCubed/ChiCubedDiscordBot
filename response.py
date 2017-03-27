@@ -2,25 +2,25 @@
 
 import sys, re
 
-# Use double colons and double semicolons to separate in replacements.db
+# Use double colons and double semicolons to separate in responses.db
 
 username, userid, message = sys.argv[1], sys.argv[2], sys.argv[3]
 
-replacements = [l.split('::') for l in open('replacements.db').read().split(';;')]
+responses = [l.split('::') for l in open('responses.db').read().split(';;')]
 
-for r in replacements:
+for r in responses:
     if not r[0].endswith("$"):
         # force match from start to end; don't worry about
         # including a ^ at the start since we are using
         # re.match
         r[0] += "$"
 
-for i in range(1,len(replacements)):
-    replacements[i][0] = replacements[i][0][1:]
+for i in range(1,len(responses)):
+    responses[i][0] = responses[i][0][1:]
 
 results = ""
 
-for r in replacements:
+for r in responses:
     if re.match(r[0],message):
         results += re.sub("("+re.escape(username)+")("+re.escape(userid)+")"+r[0],
                           r[1], username+userid+message) + "\n"

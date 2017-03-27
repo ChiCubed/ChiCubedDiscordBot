@@ -14,6 +14,9 @@ if (token.hasOwnProperty('wolframtoken')) {
 const bot = new Discord.Client();
 
 
+var listening = true;
+
+
 var permissions = {};
 try {
   permissions = require('./permissions.json');
@@ -29,6 +32,27 @@ function isAdmin(id) {
 function isBlacklisted(id) {
   return permissions.blacklist.includes(id);
 }
+
+
+
+
+function respond(bot,msg,args) {
+  if (!args) {
+    return;
+  }
+  
+  child_process.execFile("./response.py",[msg.author.username,msg.author.id,args], (error,stdout,stderr) => {
+    if (error) {
+      console.log(error);
+      msg.channel.sendMessage("An error occured");
+      return;
+    }
+    msg.channel.sendMessage(stdout);
+  });
+}
+
+
+
 
 
 var commands = {
@@ -284,23 +308,48 @@ var commands = {
     }
   },
   
-  "replace": {
-    info: "dummy function to test replacement",
+  "testresponse": {
+    info: "dummy function to test responses",
     run: function(bot,msg,args) {
-      if (!args) {
-        return;
-      }
-      child_process.execFile("./replace.py",[msg.author.username,msg.author.id,args], (error,stdout,stderr) => {
-        if (error) {
-          console.log(error);
-          msg.channel.sendMessage("An error occured");
-          return;
+      respond(bot,msg,args);
+    }
+  },
+  
+  "listen": {
+    info: "turn on or off listening for responses - use 'on' or '1' to turn on and 'off' or '0' to turn off",
+    run: function(bot,msg,args) {
+      if (args == "on" || args == "1") {
+        listening = true;
+      } else if (args == "off" || args == "0") {
+        listening = false;
+      } else if (args == "") {
+        if (listening) {
+          msg.channel.sendMessage("Yep, I'm listening.");
+        } else {
+          msg.channel.sendMessage("I'm not listening right now.");
         }
-        msg.channel.sendMessage(stdout);
-      });
+      } else {
+        msg.channel.sendMessage(msg.author.username + ": Unknown command. Try `!help listen`.");
+      }
     }
   }
 }
+
+
+
+function parseCommand(msg) {
+  var cmd = "";
+  var args = "";
+  if (!msg.content.includes(" ")) {
+    cmd = msg.content.substr(1);
+  } else {
+    cmd = msg.content.substr(1,msg.content.indexOf(' ')-1);
+    args = msg.content.substr(msg.content.indexOf(' ') + 1).trim();
+  }
+  
+  return [cmd,args];
+}
+
 
 
 function processCommand(bot,msg) {
@@ -313,15 +362,9 @@ function processCommand(bot,msg) {
     return;
   }
   
-  var cmd = "";
-  var args = "";
-  var mentions = msg.mentions;
-  if (!msg.content.includes(" ")) {
-    cmd = msg.content.substr(1);
-  } else {
-    cmd = msg.content.substr(1,msg.content.indexOf(' ')-1);
-    args = msg.content.substr(msg.content.indexOf(' ') + 1).trim();
-  }
+  parsed = parseCommand(msg);
+  cmd = parsed[0];
+  args = parsed[1];
   
   if (cmd == "help") {
     console.log("received help request from " + msg.author.username + ": " + args);
@@ -363,6 +406,10 @@ bot.on('ready', () => {
 bot.on('message', message => {
   if (message.content.startsWith('!')) {
     processCommand(bot,message);
+  }
+  
+  if (message.author.id != bot.user.id && listening) {
+    respond(bot,message,message.content);
   }
 });
 
