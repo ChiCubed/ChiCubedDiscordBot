@@ -36,18 +36,31 @@ function isBlacklisted(id) {
 
 
 
+function parse(bot,msg,args) {
+  // args is the actual thing to parse
+  return args;
+}
+
+
+
+
 function respond(bot,msg,args) {
   if (!args) {
     return;
   }
   
-  child_process.execFile("./response.py",[msg.author.username,msg.author.id,args], (error,stdout,stderr) => {
+  child_process.execFile("./response.py", ["query",msg.author.username,msg.author.id,args], (error,stdout,stderr) => {
     if (error) {
       console.log(error);
       msg.channel.sendMessage("An error occured");
       return;
     }
-    msg.channel.sendMessage(stdout);
+    if (!stdout) {
+      return;
+    }
+    msg.channel.startTyping();
+    msg.channel.sendMessage(parse(bot,msg,stdout)).catch(function(err){});
+    msg.channel.stopTyping();
   });
 }
 
@@ -205,6 +218,10 @@ var commands = {
         return;
       }
       
+      if (!args) {
+        return;
+      }
+      
       customsearch.cse.list({ cx: token.googlecx, q: args, auth: token.googletoken },
         function(err, resp) {
           if (err) {
@@ -248,8 +265,8 @@ var commands = {
                      + "*\n" + resp.items[i].snippet.replace(ipv4,"[REDACTED]").replace(ipv6,"[REDACTED]") + "\n";
           }
           
-          msg.channel.sendMessage(results);
-        })
+          msg.channel.sendMessage(results).catch(function(err){});
+        });
     }
   },
   
@@ -260,6 +277,10 @@ var commands = {
         msg.channel.sendMessage(
           msg.author.username + ": no WolframAlpha token"
         );
+        return;
+      }
+      
+      if (!args) {
         return;
       }
       

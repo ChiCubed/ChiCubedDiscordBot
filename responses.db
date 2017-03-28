@@ -1,2 +1,2 @@
-Example::Test;;
-(.*)::\1 (user <@\2>) sent message "\3";;
+(.*)(B|b)ot,? are you ([^ ]* )?there(.*)::<@\2> I am definitely here.;;
+(.*)(W|w)ho am (I|i)(.*)::You're \1, or at least that's what I've been told.;;
