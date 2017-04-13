@@ -4,6 +4,7 @@
     "discord.js": "^11.0.0",
     "google-search": "0.0.5",
     "googleapis": "^18.0.0",
+    "jimp": "^0.2.27",
     "node-gyp": "^3.5.0",
     "node-opus": "^0.2.4",
     "uws": "^0.14.0",

@@ -27,5 +27,4 @@ The responses all start from the beginning and end at the end of the
 messages.
 
 The bot listens for messages which match the regexes on the left side
-and responds to them with those on the right side. (At least it will eventually,
-at the moment use the `!testresponse` command to test your responses)
+and responds to them with those on the right side.

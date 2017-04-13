@@ -1,2 +1,4 @@
-(.*)(B|b)ot,? are you ([^ ]* )?there(.*)::<@\2> I am definitely here.;;
-(.*)(W|w)ho am (I|i)(.*)::You're \1, or at least that's what I've been told.;;
+.*(B|b)ot,? are you ([^ ]* )?there.*::<@\2> I am definitely here.;;
+.*(W|w)ho am (I|i).*::You're \1, or at least that's what I've been told.;;
+.*(((H|h)ey )?(B|b)ot,? )?(W|w)hat(('| i)s the time| time is it).*::{{command time}};;
+.*(W|w)oah hey.*::Welcome to EB games! \\copy that\\;;
